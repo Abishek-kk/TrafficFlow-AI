@@ -29,23 +29,33 @@ TARGET_GROUPS = {
 
 MODEL_FEATURES = [
     'geo_te',
-    'geo_time_te',
-    'geo_day_te',
-    'geo_hour_te',
+    'geo_prefix_te',
     'hour_te',
     'day_te',
     'weather_te',
     'road_te',
+    'geo_hour_te',
+    'geo_time_te',
+    'geo_day_te',
+    'weather_hour_te',
+    'landmarks_te',
+    'large_veh_te',
     'geohash_le',
     'geo_prefix_le',
     'RoadType_le',
     'LargeVehicles_le',
     'Landmarks_le',
     'Weather_le',
+    'hour',
+    'day',
+    'time_of_day',
     'sin_time',
     'cos_time',
     'NumberofLanes',
-    'Temperature'
+    'Temperature',
+    'geo_count',
+    'geo_hour_count',
+    'geo_day_count'
 ]
 
 
@@ -108,6 +118,40 @@ def create_geo_features(df):
     """
     df = df.copy()
     df['geo_prefix'] = df['geohash'].astype(str).str[:4]
+    return df
+
+
+def build_count_maps(df):
+    """
+    Build mapping dictionaries for count-based group features.
+    """
+    return {
+        'geo_count': df['geohash'].value_counts().to_dict(),
+        'geo_hour_count': df.groupby(['geohash', 'hour']).size().to_dict(),
+        'geo_day_count': df.groupby(['geohash', 'day']).size().to_dict()
+    }
+
+
+def apply_count_maps(df, count_maps):
+    """
+    Apply count-based mappings to new data.
+    """
+    df = df.copy()
+    df['geo_count'] = df['geohash'].map(count_maps['geo_count']).fillna(0).astype(int)
+    df['geo_hour_count'] = (
+        df[['geohash', 'hour']]
+        .apply(tuple, axis=1)
+        .map(count_maps['geo_hour_count'])
+        .fillna(0)
+        .astype(int)
+    )
+    df['geo_day_count'] = (
+        df[['geohash', 'day']]
+        .apply(tuple, axis=1)
+        .map(count_maps['geo_day_count'])
+        .fillna(0)
+        .astype(int)
+    )
     return df
 
 
@@ -243,6 +287,10 @@ def preprocess_train_test(train, test):
     train = create_geo_features(train)
     test = create_geo_features(test)
 
+    count_maps = build_count_maps(train)
+    train = apply_count_maps(train, count_maps)
+    test = apply_count_maps(test, count_maps)
+
     label_encoders = fit_label_encoders(train, test)
     train = apply_label_encoders(train, label_encoders)
     test = apply_label_encoders(test, label_encoders)
@@ -258,7 +306,8 @@ def preprocess_train_test(train, test):
     encoders = {
         'label_encoders': label_encoders,
         'target_encoders': target_encoders,
-        'target_mean': target_mean
+        'target_mean': target_mean,
+        'count_maps': count_maps
     }
 
     return train, test, encoders
@@ -271,6 +320,7 @@ def preprocess_test(test, encoders):
     test = fill_missing_values(test)
     test = create_time_features(test)
     test = create_geo_features(test)
+    test = apply_count_maps(test, encoders['count_maps'])
     test = apply_label_encoders(test, encoders['label_encoders'])
     test = apply_target_encoding_features(
         test,
