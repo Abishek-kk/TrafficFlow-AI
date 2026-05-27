@@ -35,7 +35,7 @@ Through extensive feature engineering and ensembling, the model's accuracy (R² 
 | `models/` | Saved models (`catboost_model.pkl`, `lightgbm_model.pkl`), weights, and encoder artifacts |
 | `outputs/` | Generated submission predictions (`submission.csv`) |
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 Make sure Python is installed, then install the required dependencies:
 
