@@ -2,7 +2,7 @@
 
 A complete traffic demand forecasting pipeline with Python, CatBoost, LightGBM, and advanced engineered features.
 
-## 🚀 Project Summary
+##  Project Summary
 
 This project predicts traffic demand using:
 
@@ -15,14 +15,14 @@ This project predicts traffic demand using:
 
 The pipeline trains a robust, weighted ensemble of **CatBoost** and **LightGBM** models using 5-Fold Cross-Validation.
 
-## 📊 Key Results
+##  Key Results
 
 Through extensive feature engineering and ensembling, the model's accuracy (R² Score) has been significantly improved:
 
 - **Original Performance**: `~89.68%` R²
 - **New Ensemble Performance**: **`~96.2%` R²** (Validation Cross-Validation Score)
 
-## 📁 Repository Structure
+##  Repository Structure
 
 | Path | Description |
 |---|---|
@@ -43,7 +43,7 @@ Make sure Python is installed, then install the required dependencies:
 python -m pip install -r requirements.txt
 ```
 
-## 🏃 How to Run
+##  How to Run
 
 To run the entire pipeline (train the models and generate predictions):
 
@@ -60,7 +60,7 @@ This will automatically:
 6. Save the trained models, encoders, and ensemble weights to the `models/` folder.
 7. Generate and save the final predictions to `outputs/submission.csv`.
 
-## 📦 Data Requirements
+##  Data Requirements
 
 The pipeline expects two files in the `data/` directory:
 
@@ -70,7 +70,7 @@ The pipeline expects two files in the `data/` directory:
 ### Required columns:
 `Index`, `geohash`, `day`, `timestamp`, `RoadType`, `NumberofLanes`, `LargeVehicles`, `Landmarks`, `Temperature`, `Weather`
 
-## 🧠 Notes for Developers
+##  Notes for Developers
 
 - **Target Encoding**: All target encodings are computed out-of-fold (OOF) during training to prevent data leakage.
 - **Ensemble Inference**: If you only want to generate predictions using already trained models, you can run `src/predict.py` directly.
