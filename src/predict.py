@@ -27,22 +27,46 @@ def load_encoders(encoder_path):
 
 
 def predict_demand(
-    model_path,
-    encoder_path,
-    test_path,
+    model_path=None,
+    encoder_path='models/encoders.pkl',
+    test_path='data/test.csv',
     output_path='outputs/submission.csv'
 ):
     """
-    Predict traffic demand using the trained model and saved encoders.
+    Predict traffic demand using the ensemble of trained models.
+    Loads CatBoost, XGBoost, and LightGBM models with their weights.
     """
-    model = load_model(model_path)
     encoders = load_encoders(encoder_path)
 
     test = pd.read_csv(test_path)
     test = preprocess_test(test, encoders)
 
     index_col = test['Index']
-    predictions = model.predict(test[MODEL_FEATURES])
+    test_X = test[MODEL_FEATURES]
+
+    # Load ensemble weights
+    weights_path = 'models/ensemble_weights.pkl'
+    if os.path.exists(weights_path):
+        weights = joblib.load(weights_path)
+        print(f'Ensemble weights: {weights}')
+
+        # Load all models
+        cat_model = joblib.load('models/catboost_model.pkl')
+        lgb_model = joblib.load('models/lightgbm_model.pkl')
+
+        pred_cat = cat_model.predict(test_X)
+        pred_lgb = lgb_model.predict(test_X)
+
+        predictions = (
+            weights['catboost'] * pred_cat +
+            weights['lightgbm'] * pred_lgb
+        )
+        print('Ensemble prediction completed (CatBoost + LightGBM)')
+    else:
+        # Fallback: single CatBoost model
+        model = joblib.load(model_path or 'models/catboost_model.pkl')
+        predictions = model.predict(test_X)
+        print('Single model prediction completed (fallback)')
 
     submission = pd.DataFrame({
         'Index': index_col,
@@ -59,13 +83,5 @@ def predict_demand(
 
 
 if __name__ == '__main__':
-    MODEL_PATH = 'models/catboost_model.pkl'
-    ENCODER_PATH = 'models/encoders.pkl'
-    TEST_PATH = 'data/test.csv'
-
-    submission = predict_demand(
-        MODEL_PATH,
-        ENCODER_PATH,
-        TEST_PATH
-    )
+    submission = predict_demand()
     print(submission.head())
