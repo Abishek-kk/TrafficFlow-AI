@@ -44,7 +44,7 @@ Make sure Python is installed, then install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-## ▶ How to Run
+## How to Run
 
 From the repository root, execute:
 
