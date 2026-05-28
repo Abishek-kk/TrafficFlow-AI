@@ -1,5 +1,6 @@
 import os
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     r2_score,
@@ -112,6 +113,8 @@ def save_submission(
     """
     Save submission CSV
     """
+
+    predictions = np.clip(predictions, 0, 1)
 
     submission = pd.DataFrame({
         "Index": index_col,
